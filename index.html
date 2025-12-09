@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Technician Toolkit — Diagnostic Dashboard</title>
+  <!-- Google Fonts (optional) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#94a3b8; --accent:#06b6d4; --glass: rgba(255,255,255,0.03);
+      --success:#16a34a; --danger:#ef4444; --max-width:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:
+        radial-gradient(1200px 400px at 10% 0%, rgba(6,182,212,0.06), transparent 8%),
+        radial-gradient(1000px 300px at 90% 100%, rgba(99,102,241,0.04), transparent 6%),
+        var(--bg);
+      color:#e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:32px;
+      display:flex;
+      justify-content:center;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:var(--max-width);
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:20px;
+    }
+
+    header{
+      grid-column:1/-1;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      margin-bottom:4px;
+    }
+    .logo{
+      width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);
+      display:flex;align-items:center;justify-content:center;font-weight:700;color:#021;box-shadow:0 6px 20px rgba(6,182,212,0.08);
+    }
+    header h1{font-size:18px;margin:0}
+    header p{margin:0;color:var(--muted);font-size:13px}
+
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.04);
+      box-shadow:0 6px 24px rgba(2,6,23,0.6);
+    }
+
+    /* Left column */
+    .left .section{margin-bottom:14px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type=text], select, textarea{
+      width:100%;padding:8px 10px;border-radius:8px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);
+      color:inherit;font-size:14px;
+    }
+    textarea{min-height:80px;resize:vertical}
+
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:none;cursor:pointer;
+      background:linear-gradient(90deg,var(--accent),#7c3aed);color:#021;font-weight:600;
+      box-shadow:0 6px 18px rgba(7,89,105,0.12);
+    }
+    .btn.ghost{background:transparent;color:var(--accent);border:1px dashed rgba(255,255,255,0.03)}
+    .btn.small{padding:6px 10px;font-size:13px}
+
+    /* Right column (dashboard) */
+    .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+    .metric{
+      padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)
+    }
+    .metric h3{margin:0;font-size:13px;color:var(--muted)}
+    .metric p{font-size:18px;margin:6px 0 0}
+
+    .checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .check-card{
+      padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border:1px solid rgba(255,255,255,0.03)
+    }
+    .check-card h4{margin:0 0 8px;font-size:13px;color:var(--muted)}
+    .check-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+    .check-list li{display:flex;align-items:center;gap:8px}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block}
+
+    .status{display:inline-flex;gap:8px;align-items:center}
+    .status .ok{color:var(--success)}
+    .status .fail{color:var(--danger)}
+    .log{height:120px;overflow:auto;background:rgba(255,255,255,0.015);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);font-size:13px;color:var(--muted)}
+
+    footer{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:var(--muted);font-size:13px}
+
+    /* Responsive */
+    @media (max-width:920px){
+      .wrap{grid-template-columns:1fr; padding-bottom:30px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="Technician Toolkit">
+    <header>
+      <div class="logo" aria-hidden="true">TK</div>
+      <div>
+        <h1>Technician Toolkit</h1>
+        <p>Interactive diagnostic dashboard — collect findings, run checks, generate report</p>
+      </div>
+    </header>
+
+    <!-- LEFT: form & actions -->
+    <aside class="panel left" aria-label="Controls">
+      <div class="section">
+        <label for="device-name">Device Name / Model</label>
+        <input id="device-name" type="text" placeholder="Dell Inspiron 15" value="Dell Inspiron 15 3000">
+
+        <label for="asset-id" style="margin-top:10px">Asset / Serial No.</label>
+        <input id="asset-id" type="text" placeholder="S/N / Asset tag" value="SN-ABCD1234">
+
+        <label for="technician" style="margin-top:10px">Technician</label>
+        <input id="technician" type="text" placeholder="Your name" value="Kavyansh Tyagi">
+
+        <label for="notes" style="margin-top:10px">Notes</label>
+        <textarea id="notes" placeholder="Observations..."></textarea>
+      </div>
+
+      <div class="section" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="run-all" class="btn">Run All Checks</button>
+        <button id="reset" class="btn ghost small">Reset</button>
+        <button id="generate" class="btn small" title="Download report">Generate Report</button>
+      </div>
+
+      <div class="section" style="margin-top:12px">
+        <h3 style="margin:0 0 8px 0;font-size:14px">Quick Actions</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn small" id="test-temp">Check Temp</button>
+          <button class="btn small" id="test-disk">Check Disk</button>
+          <button class="btn small" id="test-ram">Check RAM</button>
+          <button class="btn small" id="test-net">Network Speed</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT: dashboard -->
+    <main class="panel right" aria-label="Dashboard">
+      <div class="metrics" role="status" aria-live="polite">
+        <div class="metric">
+          <h3>CPU</h3>
+          <p id="cpu-val">--%</p>
+        </div>
+        <div class="metric">
+          <h3>Memory</h3>
+          <p id="mem-val">-- / --</p>
+        </div>
+        <div class="metric">
+          <h3>Disk Health</h3>
+          <p id="disk-val">Unknown</p>
+        </div>
+        <div class="metric">
+          <h3>Network</h3>
+          <p id="net-val">-- Mbps</p>
+        </div>
+      </div>
+
+      <div class="checks" style="margin-bottom:12px">
+        <div class="check-card" aria-label="System Checks">
+          <h4>System Checks</h4>
+          <ul class="check-list">
+            <li><span class="dot" id="dot-temp"></span> CPU Temperature: <span class="status" id="st-temp"></span></li>
+            <li><span class="dot" id="dot-batt"></span> Battery Health: <span class="status" id="st-batt"></span></li>
+            <li><span class="dot" id="dot-disk"></span> Disk SMART: <span class="status" id="st-disk"></span></li>
+            <li><span class="dot" id="dot-ram"></span> RAM Check: <span class="status" id="st-ram"></span></li>
+          </ul>
+        </div>
+
+        <div class="check-card" aria-label="Network Checks">
+          <h4>Network Checks</h4>
+          <ul class="check-list">
+            <li><span class="dot" id="dot-lan"></span> LAN Link: <span class="status" id="st-lan"></span></li>
+            <li><span class="dot" id="dot-wifi"></span> Wi-Fi Signal: <span class="status" id="st-wifi"></span></li>
+            <li><span class="dot" id="dot-ping"></span> Ping Test: <span class="status" id="st-ping"></span></li>
+            <li><span class="dot" id="dot-dns"></span> DNS Resolution: <span class="status" id="st-dns"></span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1">
+          <h4 style="margin:0 0 8px 0;color:var(--muted)">Logs</h4>
+          <div id="log" class="log" aria-live="polite"></div>
+        </div>
+        <div style="width:260px">
+          <h4 style="margin:0 0 8px 0;color:var(--muted)">Actions / Findings</h4>
+          <textarea id="finding" placeholder="Action taken / findings..." style="height:140px"></textarea>
+        </div>
+      </div>
+
+      <footer>
+        <div>Model demo • Show live run & generate PDF</div>
+        <div>Version 1.0</div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- jsPDF CDN for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-/1e1lR7j8v0sM2gOe/tjlpz6oQ0AwhdQyqXJkO1rYxI0m5bHQ5W2e3Y1q7gvrgq2o4j4aMpm7N7zQ2ZqFf0Zig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    // Technician Toolkit - simple simulated checks and report generation
+    (function(){
+      const $ = id => document.getElementById(id);
+      const logEl = $('log');
+      const cpuVal = $('cpu-val'), memVal = $('mem-val'), diskVal = $('disk-val'), netVal = $('net-val');
+
+      function log(msg){
+        const line = document.createElement('div');
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logEl.prepend(line);
+      }
+
+      function setStatus(prefixId, ok, text){
+        const el = $(prefixId);
+        el.textContent = text;
+        el.className = 'status ' + (ok ? 'ok' : 'fail');
+        const dot = document.querySelector('#' + prefixId.replace('st-','dot-'));
+        if(dot) dot.style.background = ok ? 'var(--success)' : 'var(--danger)';
+      }
+
+      // Simulated checks (because browser can't access hardware)
+      function checkTemperature(){
+        // simulate reading
+        const temp = Math.floor(35 + Math.random()*30); // 35 - 65
+        cpuVal.textContent = temp + ' °C';
+        const ok = temp < 70;
+        setStatus('st-temp', ok, ok ? 'OK ('+temp+'°C)' : 'High ('+temp+'°C)');
+        log('Temperature check: ' + temp + '°C');
+      }
+
+      function checkBattery(){
+        // simulate battery health %
+        const pct = Math.floor(50 + Math.random()*50); // 50-99
+        const ok = pct > 40;
+        setStatus('st-batt', ok, pct + '%');
+        log('Battery health: ' + pct + '%');
+      }
+
+      function checkDisk(){
+        const health = Math.random() > 0.15 ? 'Good' : 'Warning';
+        diskVal.textContent = health;
+        const ok = health === 'Good';
+        setStatus('st-disk', ok, health);
+        log('Disk SMART: ' + health);
+      }
+
+      function checkRAM(){
+        const used = Math.floor(2 + Math.random()*14); // 2-16 used
+        const total = 16;
+        memVal.textContent = used + ' GB / ' + total + ' GB';
+        const ok = used/total < 0.95;
+        setStatus('st-ram', ok, used + 'GB used');
+        log('RAM usage: ' + used + 'GB');
+      }
+
+      function checkNetwork(){
+        // Simulated speed
+        const speed = Math.floor(5 + Math.random()*250); // 5 - 255 Mbps
+        netVal.textContent = speed + ' Mbps';
+        const ok = speed > 5;
+        setStatus('st-lan', ok, ok ? 'Link Up' : 'Link Down');
+        setStatus('st-wifi', speed > 20, speed > 20 ? 'Good' : 'Weak');
+        setStatus('st-ping', speed > 5, 'Latency ~ ' + (Math.floor(10 + Math.random()*200)) + ' ms');
+        setStatus('st-dns', true, 'OK');
+        log('Network speed test: ' + speed + ' Mbps');
+      }
+
+      function runAll(){
+        log('Starting full diagnostic...');
+        checkTemperature();
+        checkBattery();
+        checkDisk();
+        checkRAM();
+        setTimeout(checkNetwork, 500);
+        setTimeout(()=>{ log('Diagnostic completed.'); }, 700);
+      }
+
+      // Button bindings
+      $('run-all').addEventListener('click', runAll);
+      $('test-temp').addEventListener('click', checkTemperature);
+      $('test-disk').addEventListener('click', checkDisk);
+      $('test-ram').addEventListener('click', checkRAM);
+      $('test-net').addEventListener('click', checkNetwork);
+      $('reset').addEventListener('click', ()=> {
+        cpuVal.textContent = '--%'; memVal.textContent='--/--'; diskVal.textContent='Unknown'; netVal.textContent='-- Mbps';
+        ['st-temp','st-batt','st-disk','st-ram','st-lan','st-wifi','st-ping','st-dns'].forEach(id=>{
+          const el = $(id); if(el){ el.textContent = ''; el.className=''; }
+          const dot = document.querySelector('#' + id.replace('st-','dot-')); if(dot) dot.style.background = '';
+        });
+        log('Reset dashboard.');
+        $('finding').value=''; $('notes').value='';
+      });
+
+      // PDF Generation using jsPDF
+      $('generate').addEventListener('click', async ()=>{
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({unit:'pt', format:'a4'});
+        const pad = 36;
+        doc.setFontSize(14);
+        doc.text('Technician Toolkit — Diagnostic Report', pad, 48);
+        doc.setFontSize(11);
+        const now = new Date().toLocaleString();
+        doc.text(`Date: ${now}`, pad, 66);
+        doc.setFontSize(10);
+        const device = $('device-name').value || 'N/A';
+        const asset = $('asset-id').value || 'N/A';
+        const tech = $('technician').value || 'N/A';
+        doc.text(`Device: ${device}`, pad, 92);
+        doc.text(`Asset / SN: ${asset}`, pad, 106);
+        doc.text(`Technician: ${tech}`, pad, 120);
+
+        // Metrics
+        doc.setFontSize(12); doc.text('Summary:', pad, 150);
+        doc.setFontSize(10);
+        doc.text(`CPU / Temp: ${cpuVal.textContent}`, pad, 168);
+        doc.text(`Memory: ${memVal.textContent}`, pad + 260, 168);
+        doc.text(`Disk: ${diskVal.textContent}`, pad, 184);
+        doc.text(`Network: ${netVal.textContent}`, pad + 260, 184);
+
+        // Findings
+        doc.setFontSize(12); doc.text('Findings & Actions:', pad, 210);
+        doc.setFontSize(10);
+        const lines = doc.splitTextToSize($('finding').value || 'No additional findings noted.', 520);
+        doc.text(lines, pad, 228);
+
+        // Logs (last 10)
+        doc.setFontSize(12); doc.text('Recent Logs:', pad, 320);
+        doc.setFontSize(9);
+        const logLines = Array.from(logEl.children).slice(0,10).map(n => n.textContent);
+        if(logLines.length){
+          doc.text(doc.splitTextToSize(logLines.join('\n'), 520), pad, 338);
+        } else {
+          doc.text('No logs recorded.', pad, 338);
+        }
+
+        // Notes & signature
+        doc.setFontSize(10);
+        doc.text('Notes:', pad, 480);
+        const notes = $('notes').value || '';
+        doc.text(doc.splitTextToSize(notes, 520), pad, 496);
+
+        doc.text('Technician signature: ____________________', pad, 620);
+        doc.save(`diagnostic-${device.replace(/\s+/g,'_')}.pdf`);
+        log('Report generated and downloaded.');
+      });
+
+      // small accessibility improvement: allow Enter run
+      document.addEventListener('keydown', (e)=>{
+        if(e.key === 'F9') { runAll(); }
+      });
+
+      // initial welcome logs
+      log('Technician Toolkit ready. Click "Run All Checks" or individual tests to begin.');
+    })();
+  </script>
+</body>
+</html>
