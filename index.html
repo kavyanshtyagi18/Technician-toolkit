@@ -3,370 +3,1368 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Technician Toolkit — Diagnostic Dashboard</title>
-  <!-- Google Fonts (optional) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>Technician Toolkit — Live Diagnostic Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#0f1724; --card:#0b1220; --muted:#94a3b8; --accent:#06b6d4; --glass: rgba(255,255,255,0.03);
-      --success:#16a34a; --danger:#ef4444; --max-width:1100px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:
-        radial-gradient(1200px 400px at 10% 0%, rgba(6,182,212,0.06), transparent 8%),
-        radial-gradient(1000px 300px at 90% 100%, rgba(99,102,241,0.04), transparent 6%),
-        var(--bg);
-      color:#e6eef8;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding:32px;
-      display:flex;
-      justify-content:center;
-    }
-
-    .wrap{
-      width:100%;
-      max-width:var(--max-width);
-      margin:0 auto;
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      gap:20px;
+    :root {
+      --bg: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: linear-gradient(145deg, rgba(25, 25, 35, 0.9), rgba(15, 15, 22, 0.95));
+      --border: rgba(255, 255, 255, 0.06);
+      --border-glow: rgba(99, 102, 241, 0.3);
+      --text: #f1f5f9;
+      --text-muted: #64748b;
+      --text-dim: #475569;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.3);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.3);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.3);
+      --cyan: #06b6d4;
+      --purple: #a855f7;
     }
 
-    header{
-      grid-column:1/-1;
-      display:flex;
-      align-items:center;
-      gap:16px;
-      margin-bottom:4px;
-    }
-    .logo{
-      width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);
-      display:flex;align-items:center;justify-content:center;font-weight:700;color:#021;box-shadow:0 6px 20px rgba(6,182,212,0.08);
-    }
-    header h1{font-size:18px;margin:0}
-    header p{margin:0;color:var(--muted);font-size:13px}
-
-    .panel{
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.04);
-      box-shadow:0 6px 24px rgba(2,6,23,0.6);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Left column */
-    .left .section{margin-bottom:14px}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text], select, textarea{
-      width:100%;padding:8px 10px;border-radius:8px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);
-      color:inherit;font-size:14px;
+    /* Animated background */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 20% -20%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168, 85, 247, 0.1), transparent),
+        radial-gradient(ellipse 50% 30% at 50% 50%, rgba(6, 182, 212, 0.05), transparent);
     }
-    textarea{min-height:80px;resize:vertical}
 
-    .btn{
-      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:none;cursor:pointer;
-      background:linear-gradient(90deg,var(--accent),#7c3aed);color:#021;font-weight:600;
-      box-shadow:0 6px 18px rgba(7,89,105,0.12);
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
     }
-    .btn.ghost{background:transparent;color:var(--accent);border:1px dashed rgba(255,255,255,0.03)}
-    .btn.small{padding:6px 10px;font-size:13px}
 
-    /* Right column (dashboard) */
-    .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
-    .metric{
-      padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
     }
-    .metric h3{margin:0;font-size:13px;color:var(--muted)}
-    .metric p{font-size:18px;margin:6px 0 0}
 
-    .checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .check-card{
-      padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
-      border:1px solid rgba(255,255,255,0.03)
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
-    .check-card h4{margin:0 0 8px;font-size:13px;color:var(--muted)}
-    .check-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-    .check-list li{display:flex;align-items:center;gap:8px}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block}
 
-    .status{display:inline-flex;gap:8px;align-items:center}
-    .status .ok{color:var(--success)}
-    .status .fail{color:var(--danger)}
-    .log{height:120px;overflow:auto;background:rgba(255,255,255,0.015);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);font-size:13px;color:var(--muted)}
-
-    footer{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:var(--muted);font-size:13px}
-
-    /* Responsive */
-    @media (max-width:920px){
-      .wrap{grid-template-columns:1fr; padding-bottom:30px}
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      box-shadow: 0 8px 32px var(--accent-glow);
     }
+
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text), var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 24px;
+      font-size: 13px;
+      color: var(--success);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* Main Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Card Styles */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.7;
+    }
+
+    /* Sidebar Form */
+    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      color: white;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-glow);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #059669);
+      color: white;
+      box-shadow: 0 4px 20px var(--success-glow);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .quick-btn {
+      padding: 10px 12px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-btn:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .quick-btn svg { width: 14px; height: 14px; }
+
+    /* Dashboard Area */
+    .dashboard { display: flex; flex-direction: column; gap: 20px; }
+
+    /* Device Info Banner */
+    .device-banner {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .device-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .device-info-item .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+
+    .device-info-item .value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .metric-card.active::before { opacity: 1; }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .metric-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .metric-icon.cpu { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+    .metric-icon.memory { background: rgba(168, 85, 247, 0.15); color: var(--purple); }
+    .metric-icon.storage { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+    .metric-icon.network { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .metric-icon.battery { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+
+    .metric-icon svg { width: 20px; height: 20px; }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin: 8px 0 4px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .metric-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease, background 0.3s ease;
+    }
+
+    /* Checks Grid */
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .checks-grid { grid-template-columns: 1fr; }
+    }
+
+    .check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .check-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .check-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .check-dot.success {
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success-glow);
+    }
+
+    .check-dot.warning {
+      background: var(--warning);
+      box-shadow: 0 0 12px var(--warning-glow);
+    }
+
+    .check-dot.danger {
+      background: var(--danger);
+      box-shadow: 0 0 12px var(--danger-glow);
+    }
+
+    .check-dot.loading {
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .check-label {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .check-value {
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .check-value.success { color: var(--success); }
+    .check-value.warning { color: var(--warning); }
+    .check-value.danger { color: var(--danger); }
+
+    /* Log Area */
+    .log-section {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .log-section { grid-template-columns: 1fr; }
+    }
+
+    .log-container {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      height: 180px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      display: flex;
+      gap: 12px;
+    }
+
+    .log-entry:last-child { border-bottom: none; }
+
+    .log-time {
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .log-message {
+      color: var(--text-muted);
+    }
+
+    .log-message.success { color: var(--success); }
+    .log-message.warning { color: var(--warning); }
+    .log-message.error { color: var(--danger); }
+    .log-message.info { color: var(--cyan); }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    /* Loading Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* Tooltip */
+    [data-tooltip] {
+      position: relative;
+    }
+
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 10px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    [data-tooltip]:hover::after { opacity: 1; }
   </style>
 </head>
 <body>
-  <div class="wrap" role="application" aria-label="Technician Toolkit">
-    <header>
-      <div class="logo" aria-hidden="true">TK</div>
-      <div>
-        <h1>Technician Toolkit</h1>
-        <p>Interactive diagnostic dashboard — collect findings, run checks, generate report</p>
+  <div class="bg-gradient"></div>
+  
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">TK</div>
+        <div class="header-title">
+          <h1>Technician Toolkit</h1>
+          <p>Live System Diagnostic Dashboard</p>
+        </div>
+      </div>
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span>Live Data</span>
       </div>
     </header>
 
-    <!-- LEFT: form & actions -->
-    <aside class="panel left" aria-label="Controls">
-      <div class="section">
-        <label for="device-name">Device Name / Model</label>
-        <input id="device-name" type="text" placeholder="Dell Inspiron 15" value="Dell Inspiron 15 3000">
-
-        <label for="asset-id" style="margin-top:10px">Asset / Serial No.</label>
-        <input id="asset-id" type="text" placeholder="S/N / Asset tag" value="SN-ABCD1234">
-
-        <label for="technician" style="margin-top:10px">Technician</label>
-        <input id="technician" type="text" placeholder="Your name" value="Kavyansh Tyagi">
-
-        <label for="notes" style="margin-top:10px">Notes</label>
-        <textarea id="notes" placeholder="Observations..."></textarea>
-      </div>
-
-      <div class="section" style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="run-all" class="btn">Run All Checks</button>
-        <button id="reset" class="btn ghost small">Reset</button>
-        <button id="generate" class="btn small" title="Download report">Generate Report</button>
-      </div>
-
-      <div class="section" style="margin-top:12px">
-        <h3 style="margin:0 0 8px 0;font-size:14px">Quick Actions</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn small" id="test-temp">Check Temp</button>
-          <button class="btn small" id="test-disk">Check Disk</button>
-          <button class="btn small" id="test-ram">Check RAM</button>
-          <button class="btn small" id="test-net">Network Speed</button>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- RIGHT: dashboard -->
-    <main class="panel right" aria-label="Dashboard">
-      <div class="metrics" role="status" aria-live="polite">
-        <div class="metric">
-          <h3>CPU</h3>
-          <p id="cpu-val">--%</p>
-        </div>
-        <div class="metric">
-          <h3>Memory</h3>
-          <p id="mem-val">-- / --</p>
-        </div>
-        <div class="metric">
-          <h3>Disk Health</h3>
-          <p id="disk-val">Unknown</p>
-        </div>
-        <div class="metric">
-          <h3>Network</h3>
-          <p id="net-val">-- Mbps</p>
-        </div>
-      </div>
-
-      <div class="checks" style="margin-bottom:12px">
-        <div class="check-card" aria-label="System Checks">
-          <h4>System Checks</h4>
-          <ul class="check-list">
-            <li><span class="dot" id="dot-temp"></span> CPU Temperature: <span class="status" id="st-temp"></span></li>
-            <li><span class="dot" id="dot-batt"></span> Battery Health: <span class="status" id="st-batt"></span></li>
-            <li><span class="dot" id="dot-disk"></span> Disk SMART: <span class="status" id="st-disk"></span></li>
-            <li><span class="dot" id="dot-ram"></span> RAM Check: <span class="status" id="st-ram"></span></li>
-          </ul>
+    <div class="main-grid">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="card">
+          <div class="card-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Report Details
+          </div>
+          
+          <div class="form-group">
+            <label for="technician">Technician Name</label>
+            <input type="text" id="technician" placeholder="Your name" value="Kavyansh Tyagi">
+          </div>
+          
+          <div class="form-group">
+            <label for="asset-id">Asset / Ticket ID</label>
+            <input type="text" id="asset-id" placeholder="Enter ID">
+          </div>
+          
+          <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" placeholder="Additional observations..."></textarea>
+          </div>
         </div>
 
-        <div class="check-card" aria-label="Network Checks">
-          <h4>Network Checks</h4>
-          <ul class="check-list">
-            <li><span class="dot" id="dot-lan"></span> LAN Link: <span class="status" id="st-lan"></span></li>
-            <li><span class="dot" id="dot-wifi"></span> Wi-Fi Signal: <span class="status" id="st-wifi"></span></li>
-            <li><span class="dot" id="dot-ping"></span> Ping Test: <span class="status" id="st-ping"></span></li>
-            <li><span class="dot" id="dot-dns"></span> DNS Resolution: <span class="status" id="st-dns"></span></li>
-          </ul>
+        <div class="card">
+          <div class="card-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Actions
+          </div>
+          
+          <div class="btn-group">
+            <button class="btn btn-primary" id="run-all">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Run All Checks
+            </button>
+            <button class="btn btn-secondary" id="reset">Reset</button>
+          </div>
+          
+          <div class="quick-actions">
+            <button class="quick-btn" id="test-memory">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+              Memory
+            </button>
+            <button class="quick-btn" id="test-storage">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path></svg>
+              Storage
+            </button>
+            <button class="quick-btn" id="test-network">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path></svg>
+              Network
+            </button>
+            <button class="quick-btn" id="test-battery">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              Battery
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div style="display:flex;gap:12px;">
-        <div style="flex:1">
-          <h4 style="margin:0 0 8px 0;color:var(--muted)">Logs</h4>
-          <div id="log" class="log" aria-live="polite"></div>
-        </div>
-        <div style="width:260px">
-          <h4 style="margin:0 0 8px 0;color:var(--muted)">Actions / Findings</h4>
-          <textarea id="finding" placeholder="Action taken / findings..." style="height:140px"></textarea>
-        </div>
-      </div>
+        <button class="btn btn-success" id="generate" style="width: 100%;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Generate PDF Report
+        </button>
+      </aside>
 
-      <footer>
-        <div>Model demo • Show live run & generate PDF</div>
-        <div>Version 1.0</div>
-      </footer>
-    </main>
+      <!-- Dashboard -->
+      <main class="dashboard">
+        <!-- Device Info Banner -->
+        <div class="device-banner" id="device-banner">
+          <div class="device-info-item">
+            <span class="label">Platform</span>
+            <span class="value" id="info-platform">Detecting...</span>
+          </div>
+          <div class="device-info-item">
+            <span class="label">Browser</span>
+            <span class="value" id="info-browser">Detecting...</span>
+          </div>
+          <div class="device-info-item">
+            <span class="label">CPU Cores</span>
+            <span class="value" id="info-cores">--</span>
+          </div>
+          <div class="device-info-item">
+            <span class="label">Device Memory</span>
+            <span class="value" id="info-memory">--</span>
+          </div>
+          <div class="device-info-item">
+            <span class="label">Screen</span>
+            <span class="value" id="info-screen">--</span>
+          </div>
+          <div class="device-info-item">
+            <span class="label">Language</span>
+            <span class="value" id="info-language">--</span>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card" id="metric-cpu">
+            <div class="metric-header">
+              <div class="metric-icon cpu">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+              </div>
+              <span class="metric-label">CPU Cores</span>
+            </div>
+            <div class="metric-value" id="cpu-val">--</div>
+            <div class="metric-sub" id="cpu-sub">Logical processors</div>
+          </div>
+
+          <div class="metric-card" id="metric-memory">
+            <div class="metric-header">
+              <div class="metric-icon memory">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+              </div>
+              <span class="metric-label">Memory</span>
+            </div>
+            <div class="metric-value" id="mem-val">-- GB</div>
+            <div class="metric-sub" id="mem-sub">Device RAM</div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="mem-bar" style="width: 0%; background: var(--purple);"></div></div>
+          </div>
+
+          <div class="metric-card" id="metric-storage">
+            <div class="metric-header">
+              <div class="metric-icon storage">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+              </div>
+              <span class="metric-label">Storage</span>
+            </div>
+            <div class="metric-value" id="disk-val">--</div>
+            <div class="metric-sub" id="disk-sub">Checking...</div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="disk-bar" style="width: 0%; background: var(--cyan);"></div></div>
+          </div>
+
+          <div class="metric-card" id="metric-network">
+            <div class="metric-header">
+              <div class="metric-icon network">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path></svg>
+              </div>
+              <span class="metric-label">Network</span>
+            </div>
+            <div class="metric-value" id="net-val">--</div>
+            <div class="metric-sub" id="net-sub">Connection type</div>
+          </div>
+
+          <div class="metric-card" id="metric-battery">
+            <div class="metric-header">
+              <div class="metric-icon battery">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              </div>
+              <span class="metric-label">Battery</span>
+            </div>
+            <div class="metric-value" id="batt-val">--%</div>
+            <div class="metric-sub" id="batt-sub">Status unknown</div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="batt-bar" style="width: 0%; background: var(--warning);"></div></div>
+          </div>
+        </div>
+
+        <!-- System & Network Checks -->
+        <div class="checks-grid">
+          <div class="card">
+            <div class="card-title">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              System Checks
+            </div>
+            <ul class="check-list">
+              <li class="check-item">
+                <span class="check-dot" id="dot-cores"></span>
+                <span class="check-label">CPU Cores</span>
+                <span class="check-value" id="st-cores">--</span>
+              </li>
+              <li class="check-item">
+                <span class="check-dot" id="dot-memory"></span>
+                <span class="check-label">Memory Available</span>
+                <span class="check-value" id="st-memory">--</span>
+              </li>
+              <li class="check-item">
+                <span class="check-dot" id="dot-storage"></span>
+                <span class="check-label">Storage Quota</span>
+                <span class="check-value" id="st-storage">--</span>
+              </li>
+              <li class="check-item">
+                <span class="check-dot" id="dot-battery"></span>
+                <span class="check-label">Battery Status</span>
+                <span class="check-value" id="st-battery">--</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+              Network & Connectivity
+            </div>
+            <ul class="check-list">
+              <li class="check-item">
+                <span class="check-dot" id="dot-online"></span>
+                <span class="check-label">Internet Status</span>
+                <span class="check-value" id="st-online">--</span>
+              </li>
+              <li class="check-item">
+                <span class="check-dot" id="dot-connection"></span>
+                <span class="check-label">Connection Type</span>
+                <span class="check-value" id="st-connection">--</span>
+              </li>
+              <li class="check-item">
+                <span class="check-dot" id="dot-downlink"></span>
+                <span class="check-label">Downlink Speed</span>
+                <span class="check-value" id="st-downlink">--</span>
+              </li>
+              <li class="check-item">
+                <span class="check-dot" id="dot-rtt"></span>
+                <span class="check-label">Round Trip Time</span>
+                <span class="check-value" id="st-rtt">--</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Logs & Findings -->
+        <div class="log-section">
+          <div class="card">
+            <div class="card-title">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+              Activity Log
+            </div>
+            <div class="log-container" id="log"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              Findings
+            </div>
+            <textarea id="finding" class="form-group" placeholder="Document issues, actions taken..." style="width: 100%; min-height: 120px; margin-top: 8px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; resize: vertical;"></textarea>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <div>Technician Toolkit v2.0 — Real-time system diagnostics</div>
+          <div class="footer-links">
+            <span id="current-time"></span>
+          </div>
+        </footer>
+      </main>
+    </div>
   </div>
 
-  <!-- jsPDF CDN for PDF generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-/1e1lR7j8v0sM2gOe/tjlpz6oQ0AwhdQyqXJkO1rYxI0m5bHQ5W2e3Y1q7gvrgq2o4j4aMpm7N7zQ2ZqFf0Zig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 
   <script>
-    // Technician Toolkit - simple simulated checks and report generation
-    (function(){
+    // Technician Toolkit - Real Device Data Collection
+    (function() {
       const $ = id => document.getElementById(id);
       const logEl = $('log');
-      const cpuVal = $('cpu-val'), memVal = $('mem-val'), diskVal = $('disk-val'), netVal = $('net-val');
 
-      function log(msg){
-        const line = document.createElement('div');
-        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        logEl.prepend(line);
+      // Utility: Format bytes
+      function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
       }
 
-      function setStatus(prefixId, ok, text){
-        const el = $(prefixId);
-        el.textContent = text;
-        el.className = 'status ' + (ok ? 'ok' : 'fail');
-        const dot = document.querySelector('#' + prefixId.replace('st-','dot-'));
-        if(dot) dot.style.background = ok ? 'var(--success)' : 'var(--danger)';
+      // Logging
+      function log(msg, type = 'default') {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `
+          <span class="log-time">${new Date().toLocaleTimeString()}</span>
+          <span class="log-message ${type}">${msg}</span>
+        `;
+        logEl.prepend(entry);
       }
 
-      // Simulated checks (because browser can't access hardware)
-      function checkTemperature(){
-        // simulate reading
-        const temp = Math.floor(35 + Math.random()*30); // 35 - 65
-        cpuVal.textContent = temp + ' °C';
-        const ok = temp < 70;
-        setStatus('st-temp', ok, ok ? 'OK ('+temp+'°C)' : 'High ('+temp+'°C)');
-        log('Temperature check: ' + temp + '°C');
-      }
-
-      function checkBattery(){
-        // simulate battery health %
-        const pct = Math.floor(50 + Math.random()*50); // 50-99
-        const ok = pct > 40;
-        setStatus('st-batt', ok, pct + '%');
-        log('Battery health: ' + pct + '%');
-      }
-
-      function checkDisk(){
-        const health = Math.random() > 0.15 ? 'Good' : 'Warning';
-        diskVal.textContent = health;
-        const ok = health === 'Good';
-        setStatus('st-disk', ok, health);
-        log('Disk SMART: ' + health);
-      }
-
-      function checkRAM(){
-        const used = Math.floor(2 + Math.random()*14); // 2-16 used
-        const total = 16;
-        memVal.textContent = used + ' GB / ' + total + ' GB';
-        const ok = used/total < 0.95;
-        setStatus('st-ram', ok, used + 'GB used');
-        log('RAM usage: ' + used + 'GB');
-      }
-
-      function checkNetwork(){
-        // Simulated speed
-        const speed = Math.floor(5 + Math.random()*250); // 5 - 255 Mbps
-        netVal.textContent = speed + ' Mbps';
-        const ok = speed > 5;
-        setStatus('st-lan', ok, ok ? 'Link Up' : 'Link Down');
-        setStatus('st-wifi', speed > 20, speed > 20 ? 'Good' : 'Weak');
-        setStatus('st-ping', speed > 5, 'Latency ~ ' + (Math.floor(10 + Math.random()*200)) + ' ms');
-        setStatus('st-dns', true, 'OK');
-        log('Network speed test: ' + speed + ' Mbps');
-      }
-
-      function runAll(){
-        log('Starting full diagnostic...');
-        checkTemperature();
-        checkBattery();
-        checkDisk();
-        checkRAM();
-        setTimeout(checkNetwork, 500);
-        setTimeout(()=>{ log('Diagnostic completed.'); }, 700);
-      }
-
-      // Button bindings
-      $('run-all').addEventListener('click', runAll);
-      $('test-temp').addEventListener('click', checkTemperature);
-      $('test-disk').addEventListener('click', checkDisk);
-      $('test-ram').addEventListener('click', checkRAM);
-      $('test-net').addEventListener('click', checkNetwork);
-      $('reset').addEventListener('click', ()=> {
-        cpuVal.textContent = '--%'; memVal.textContent='--/--'; diskVal.textContent='Unknown'; netVal.textContent='-- Mbps';
-        ['st-temp','st-batt','st-disk','st-ram','st-lan','st-wifi','st-ping','st-dns'].forEach(id=>{
-          const el = $(id); if(el){ el.textContent = ''; el.className=''; }
-          const dot = document.querySelector('#' + id.replace('st-','dot-')); if(dot) dot.style.background = '';
-        });
-        log('Reset dashboard.');
-        $('finding').value=''; $('notes').value='';
-      });
-
-      // PDF Generation using jsPDF
-      $('generate').addEventListener('click', async ()=>{
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({unit:'pt', format:'a4'});
-        const pad = 36;
-        doc.setFontSize(14);
-        doc.text('Technician Toolkit — Diagnostic Report', pad, 48);
-        doc.setFontSize(11);
-        const now = new Date().toLocaleString();
-        doc.text(`Date: ${now}`, pad, 66);
-        doc.setFontSize(10);
-        const device = $('device-name').value || 'N/A';
-        const asset = $('asset-id').value || 'N/A';
-        const tech = $('technician').value || 'N/A';
-        doc.text(`Device: ${device}`, pad, 92);
-        doc.text(`Asset / SN: ${asset}`, pad, 106);
-        doc.text(`Technician: ${tech}`, pad, 120);
-
-        // Metrics
-        doc.setFontSize(12); doc.text('Summary:', pad, 150);
-        doc.setFontSize(10);
-        doc.text(`CPU / Temp: ${cpuVal.textContent}`, pad, 168);
-        doc.text(`Memory: ${memVal.textContent}`, pad + 260, 168);
-        doc.text(`Disk: ${diskVal.textContent}`, pad, 184);
-        doc.text(`Network: ${netVal.textContent}`, pad + 260, 184);
-
-        // Findings
-        doc.setFontSize(12); doc.text('Findings & Actions:', pad, 210);
-        doc.setFontSize(10);
-        const lines = doc.splitTextToSize($('finding').value || 'No additional findings noted.', 520);
-        doc.text(lines, pad, 228);
-
-        // Logs (last 10)
-        doc.setFontSize(12); doc.text('Recent Logs:', pad, 320);
-        doc.setFontSize(9);
-        const logLines = Array.from(logEl.children).slice(0,10).map(n => n.textContent);
-        if(logLines.length){
-          doc.text(doc.splitTextToSize(logLines.join('\n'), 520), pad, 338);
-        } else {
-          doc.text('No logs recorded.', pad, 338);
+      // Set check status
+      function setCheck(id, status, value) {
+        const dot = $(`dot-${id}`);
+        const val = $(`st-${id}`);
+        if (dot) {
+          dot.className = 'check-dot ' + status;
         }
+        if (val) {
+          val.textContent = value;
+          val.className = 'check-value ' + status;
+        }
+      }
 
-        // Notes & signature
+      // ==================== REAL DATA COLLECTION ====================
+
+      // 1. Device & Browser Info (navigator)
+      function getDeviceInfo() {
+        log('Collecting device information...', 'info');
+        
+        // Platform
+        const platform = navigator.userAgentData?.platform || navigator.platform || 'Unknown';
+        $('info-platform').textContent = platform;
+        
+        // Browser
+        const browserInfo = navigator.userAgentData?.brands?.[0] 
+          ? `${navigator.userAgentData.brands[0].brand} ${navigator.userAgentData.brands[0].version}`
+          : navigator.userAgent.split(' ').slice(-1)[0].split('/').join(' ');
+        $('info-browser').textContent = browserInfo;
+        
+        // CPU Cores
+        const cores = navigator.hardwareConcurrency || 'N/A';
+        $('info-cores').textContent = cores;
+        $('cpu-val').textContent = cores;
+        $('cpu-sub').textContent = 'Logical processors';
+        setCheck('cores', cores >= 4 ? 'success' : 'warning', `${cores} cores`);
+        log(`CPU: ${cores} logical cores detected`, 'success');
+        
+        // Device Memory (Chrome only)
+        const memory = navigator.deviceMemory;
+        if (memory) {
+          $('info-memory').textContent = `${memory} GB`;
+          $('mem-val').textContent = `${memory} GB`;
+          $('mem-sub').textContent = 'Approximate RAM';
+          const memPercent = Math.min((memory / 16) * 100, 100);
+          $('mem-bar').style.width = memPercent + '%';
+          setCheck('memory', memory >= 4 ? 'success' : memory >= 2 ? 'warning' : 'danger', `${memory} GB`);
+          log(`Memory: ${memory} GB detected`, 'success');
+        } else {
+          $('info-memory').textContent = 'Not available';
+          $('mem-val').textContent = 'N/A';
+          $('mem-sub').textContent = 'API not supported';
+          setCheck('memory', 'warning', 'Not available');
+          log('Memory API not supported in this browser', 'warning');
+        }
+        
+        // Screen
+        const screen = `${window.screen.width}×${window.screen.height}`;
+        const dpr = window.devicePixelRatio || 1;
+        $('info-screen').textContent = `${screen} @${dpr}x`;
+        
+        // Language
+        $('info-language').textContent = navigator.language || 'Unknown';
+        
+        log('Device info collected successfully', 'success');
+      }
+
+      // 2. Storage Quota (StorageManager API)
+      async function checkStorage() {
+        log('Checking storage quota...', 'info');
+        $('dot-storage').className = 'check-dot loading';
+        
+        if (navigator.storage && navigator.storage.estimate) {
+          try {
+            const estimate = await navigator.storage.estimate();
+            const used = estimate.usage || 0;
+            const quota = estimate.quota || 0;
+            const percent = quota > 0 ? ((used / quota) * 100).toFixed(1) : 0;
+            
+            $('disk-val').textContent = formatBytes(used);
+            $('disk-sub').textContent = `of ${formatBytes(quota)} (${percent}%)`;
+            $('disk-bar').style.width = Math.min(percent, 100) + '%';
+            
+            const status = percent < 70 ? 'success' : percent < 90 ? 'warning' : 'danger';
+            $('disk-bar').style.background = status === 'success' ? 'var(--cyan)' : status === 'warning' ? 'var(--warning)' : 'var(--danger)';
+            setCheck('storage', status, `${percent}% used`);
+            
+            log(`Storage: ${formatBytes(used)} / ${formatBytes(quota)} (${percent}%)`, status);
+          } catch (err) {
+            $('disk-val').textContent = 'Error';
+            setCheck('storage', 'danger', 'Error');
+            log('Storage check failed: ' + err.message, 'error');
+          }
+        } else {
+          $('disk-val').textContent = 'N/A';
+          $('disk-sub').textContent = 'API not supported';
+          setCheck('storage', 'warning', 'Not supported');
+          log('StorageManager API not available', 'warning');
+        }
+      }
+
+      // 3. Battery Status (Battery API)
+      async function checkBattery() {
+        log('Checking battery status...', 'info');
+        $('dot-battery').className = 'check-dot loading';
+        
+        if (navigator.getBattery) {
+          try {
+            const battery = await navigator.getBattery();
+            
+            const updateBatteryInfo = () => {
+              const level = Math.round(battery.level * 100);
+              const charging = battery.charging;
+              const chargingTime = battery.chargingTime;
+              const dischargingTime = battery.dischargingTime;
+              
+              $('batt-val').textContent = `${level}%`;
+              $('batt-bar').style.width = level + '%';
+              
+              let statusText = charging ? 'Charging' : 'Discharging';
+              if (charging && chargingTime !== Infinity) {
+                statusText += ` (${Math.round(chargingTime / 60)} min to full)`;
+              } else if (!charging && dischargingTime !== Infinity) {
+                statusText += ` (${Math.round(dischargingTime / 60)} min left)`;
+              }
+              $('batt-sub').textContent = statusText;
+              
+              const status = level > 50 ? 'success' : level > 20 ? 'warning' : 'danger';
+              $('batt-bar').style.background = status === 'success' ? 'var(--success)' : status === 'warning' ? 'var(--warning)' : 'var(--danger)';
+              setCheck('battery', status, charging ? `${level}% ⚡` : `${level}%`);
+              
+              log(`Battery: ${level}% - ${statusText}`, status);
+            };
+            
+            updateBatteryInfo();
+            
+            // Listen for changes
+            battery.addEventListener('levelchange', updateBatteryInfo);
+            battery.addEventListener('chargingchange', updateBatteryInfo);
+          } catch (err) {
+            $('batt-val').textContent = 'Error';
+            setCheck('battery', 'danger', 'Error');
+            log('Battery check failed: ' + err.message, 'error');
+          }
+        } else {
+          $('batt-val').textContent = 'N/A';
+          $('batt-sub').textContent = 'Not available (desktop/unsupported)';
+          setCheck('battery', 'warning', 'Not available');
+          log('Battery API not available (likely desktop or unsupported browser)', 'warning');
+        }
+      }
+
+      // 4. Network Information (Network Information API + navigator.onLine)
+      function checkNetwork() {
+        log('Checking network status...', 'info');
+        
+        // Online status
+        const online = navigator.onLine;
+        setCheck('online', online ? 'success' : 'danger', online ? 'Online' : 'Offline');
+        $('net-val').textContent = online ? 'Connected' : 'Offline';
+        log(`Internet: ${online ? 'Online' : 'Offline'}`, online ? 'success' : 'error');
+        
+        // Network Information API (Chrome, Edge, Opera)
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        
+        if (connection) {
+          const type = connection.effectiveType || connection.type || 'unknown';
+          const downlink = connection.downlink;
+          const rtt = connection.rtt;
+          const saveData = connection.saveData;
+          
+          setCheck('connection', type === '4g' ? 'success' : type === '3g' ? 'warning' : 'warning', type.toUpperCase());
+          $('net-sub').textContent = `${type.toUpperCase()} connection`;
+          
+          if (downlink !== undefined) {
+            setCheck('downlink', downlink >= 5 ? 'success' : downlink >= 1 ? 'warning' : 'danger', `${downlink} Mbps`);
+            log(`Downlink: ${downlink} Mbps`, downlink >= 5 ? 'success' : 'warning');
+          } else {
+            setCheck('downlink', 'warning', 'N/A');
+          }
+          
+          if (rtt !== undefined) {
+            setCheck('rtt', rtt < 100 ? 'success' : rtt < 300 ? 'warning' : 'danger', `${rtt} ms`);
+            log(`RTT: ${rtt} ms`, rtt < 100 ? 'success' : 'warning');
+          } else {
+            setCheck('rtt', 'warning', 'N/A');
+          }
+          
+          if (saveData) {
+            log('Data Saver mode is enabled', 'warning');
+          }
+          
+          // Listen for changes
+          connection.addEventListener('change', () => {
+            log('Network connection changed', 'info');
+            checkNetwork();
+          });
+        } else {
+          setCheck('connection', 'warning', 'API not available');
+          setCheck('downlink', 'warning', 'N/A');
+          setCheck('rtt', 'warning', 'N/A');
+          log('Network Information API not available', 'warning');
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+          setCheck('online', 'success', 'Online');
+          $('net-val').textContent = 'Connected';
+          log('Connection restored', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+          setCheck('online', 'danger', 'Offline');
+          $('net-val').textContent = 'Offline';
+          log('Connection lost', 'error');
+        });
+      }
+
+      // 5. Performance Memory (Chrome only)
+      function checkPerformanceMemory() {
+        if (performance.memory) {
+          const used = performance.memory.usedJSHeapSize;
+          const total = performance.memory.totalJSHeapSize;
+          const limit = performance.memory.jsHeapSizeLimit;
+          log(`JS Heap: ${formatBytes(used)} / ${formatBytes(total)} (Limit: ${formatBytes(limit)})`, 'info');
+        }
+      }
+
+      // Run all checks
+      async function runAllChecks() {
+        log('═══════════════════════════════════', 'info');
+        log('Starting comprehensive system scan...', 'info');
+        
+        // Set all dots to loading
+        ['cores', 'memory', 'storage', 'battery', 'online', 'connection', 'downlink', 'rtt'].forEach(id => {
+          const dot = $(`dot-${id}`);
+          if (dot) dot.className = 'check-dot loading';
+        });
+        
+        getDeviceInfo();
+        await checkStorage();
+        await checkBattery();
+        checkNetwork();
+        checkPerformanceMemory();
+        
+        log('All checks completed!', 'success');
+        log('═══════════════════════════════════', 'info');
+      }
+
+      // Reset
+      function reset() {
+        ['cores', 'memory', 'storage', 'battery', 'online', 'connection', 'downlink', 'rtt'].forEach(id => {
+          const dot = $(`dot-${id}`);
+          const val = $(`st-${id}`);
+          if (dot) dot.className = 'check-dot';
+          if (val) { val.textContent = '--'; val.className = 'check-value'; }
+        });
+        
+        $('cpu-val').textContent = '--';
+        $('mem-val').textContent = '-- GB';
+        $('disk-val').textContent = '--';
+        $('net-val').textContent = '--';
+        $('batt-val').textContent = '--%';
+        
+        ['mem-bar', 'disk-bar', 'batt-bar'].forEach(id => {
+          $(id).style.width = '0%';
+        });
+        
+        $('notes').value = '';
+        $('finding').value = '';
+        logEl.innerHTML = '';
+        log('Dashboard reset', 'info');
+      }
+
+      // PDF Generation
+      $('generate').addEventListener('click', async () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pad = 40;
+        let y = 40;
+        
+        // Header
+        doc.setFontSize(20);
+        doc.setTextColor(99, 102, 241);
+        doc.text('Technician Toolkit', pad, y);
+        y += 24;
+        
+        doc.setFontSize(12);
+        doc.setTextColor(100);
+        doc.text('System Diagnostic Report', pad, y);
+        y += 30;
+        
         doc.setFontSize(10);
-        doc.text('Notes:', pad, 480);
-        const notes = $('notes').value || '';
-        doc.text(doc.splitTextToSize(notes, 520), pad, 496);
-
-        doc.text('Technician signature: ____________________', pad, 620);
-        doc.save(`diagnostic-${device.replace(/\s+/g,'_')}.pdf`);
-        log('Report generated and downloaded.');
+        doc.setTextColor(60);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, pad, y);
+        doc.text(`Technician: ${$('technician').value || 'N/A'}`, pad + 260, y);
+        y += 16;
+        doc.text(`Asset/Ticket ID: ${$('asset-id').value || 'N/A'}`, pad, y);
+        y += 30;
+        
+        // Divider
+        doc.setDrawColor(200);
+        doc.line(pad, y, 555, y);
+        y += 20;
+        
+        // Device Info
+        doc.setFontSize(12);
+        doc.setTextColor(40);
+        doc.text('Device Information', pad, y);
+        y += 18;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(80);
+        const deviceInfo = [
+          `Platform: ${$('info-platform').textContent}`,
+          `Browser: ${$('info-browser').textContent}`,
+          `CPU Cores: ${$('info-cores').textContent}`,
+          `Device Memory: ${$('info-memory').textContent}`,
+          `Screen: ${$('info-screen').textContent}`,
+          `Language: ${$('info-language').textContent}`
+        ];
+        deviceInfo.forEach(info => {
+          doc.text(info, pad, y);
+          y += 14;
+        });
+        y += 10;
+        
+        // Metrics
+        doc.setFontSize(12);
+        doc.setTextColor(40);
+        doc.text('System Metrics', pad, y);
+        y += 18;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(80);
+        const metrics = [
+          `CPU: ${$('cpu-val').textContent} - ${$('cpu-sub').textContent}`,
+          `Memory: ${$('mem-val').textContent} - ${$('mem-sub').textContent}`,
+          `Storage: ${$('disk-val').textContent} - ${$('disk-sub').textContent}`,
+          `Network: ${$('net-val').textContent} - ${$('net-sub').textContent}`,
+          `Battery: ${$('batt-val').textContent} - ${$('batt-sub').textContent}`
+        ];
+        metrics.forEach(m => {
+          doc.text(m, pad, y);
+          y += 14;
+        });
+        y += 10;
+        
+        // Check Results
+        doc.setFontSize(12);
+        doc.setTextColor(40);
+        doc.text('Check Results', pad, y);
+        y += 18;
+        
+        doc.setFontSize(10);
+        const checks = [
+          ['CPU Cores', $('st-cores').textContent],
+          ['Memory', $('st-memory').textContent],
+          ['Storage', $('st-storage').textContent],
+          ['Battery', $('st-battery').textContent],
+          ['Internet', $('st-online').textContent],
+          ['Connection', $('st-connection').textContent],
+          ['Downlink', $('st-downlink').textContent],
+          ['RTT', $('st-rtt').textContent]
+        ];
+        
+        checks.forEach(([label, value]) => {
+          doc.setTextColor(80);
+          doc.text(`${label}: ${value}`, pad, y);
+          y += 14;
+        });
+        y += 10;
+        
+        // Findings
+        if ($('finding').value) {
+          doc.setFontSize(12);
+          doc.setTextColor(40);
+          doc.text('Findings & Actions', pad, y);
+          y += 18;
+          
+          doc.setFontSize(10);
+          doc.setTextColor(80);
+          const findingLines = doc.splitTextToSize($('finding').value, 500);
+          doc.text(findingLines, pad, y);
+          y += findingLines.length * 12 + 10;
+        }
+        
+        // Notes
+        if ($('notes').value) {
+          doc.setFontSize(12);
+          doc.setTextColor(40);
+          doc.text('Notes', pad, y);
+          y += 18;
+          
+          doc.setFontSize(10);
+          doc.setTextColor(80);
+          const noteLines = doc.splitTextToSize($('notes').value, 500);
+          doc.text(noteLines, pad, y);
+        }
+        
+        // Activity Log
+        const logEntries = Array.from(logEl.querySelectorAll('.log-entry')).slice(0, 15);
+        if (logEntries.length > 0) {
+          doc.addPage();
+          y = 40;
+          
+          doc.setFontSize(12);
+          doc.setTextColor(40);
+          doc.text('Activity Log', pad, y);
+          y += 18;
+          
+          doc.setFontSize(9);
+          doc.setTextColor(80);
+          logEntries.forEach(entry => {
+            const time = entry.querySelector('.log-time')?.textContent || '';
+            const msg = entry.querySelector('.log-message')?.textContent || '';
+            doc.text(`[${time}] ${msg}`, pad, y);
+            y += 12;
+          });
+        }
+        
+        // Save
+        const filename = `diagnostic-report-${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(filename);
+        log(`Report saved: ${filename}`, 'success');
       });
 
-      // small accessibility improvement: allow Enter run
-      document.addEventListener('keydown', (e)=>{
-        if(e.key === 'F9') { runAll(); }
-      });
+      // Event Listeners
+      $('run-all').addEventListener('click', runAllChecks);
+      $('reset').addEventListener('click', reset);
+      $('test-memory').addEventListener('click', () => { getDeviceInfo(); });
+      $('test-storage').addEventListener('click', checkStorage);
+      $('test-network').addEventListener('click', checkNetwork);
+      $('test-battery').addEventListener('click', checkBattery);
 
-      // initial welcome logs
-      log('Technician Toolkit ready. Click "Run All Checks" or individual tests to begin.');
+      // Update time
+      function updateTime() {
+        $('current-time').textContent = new Date().toLocaleString();
+      }
+      setInterval(updateTime, 1000);
+      updateTime();
+
+      // Initialize
+      log('Technician Toolkit v2.0 initialized', 'info');
+      log('Click "Run All Checks" to begin diagnostic scan', 'info');
+      log('Using browser APIs to collect real device data', 'info');
+      
+      // Auto-detect basic info on load
+      setTimeout(() => {
+        getDeviceInfo();
+        checkNetwork();
+      }, 500);
+
+      // Keyboard shortcut
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'F9') {
+          e.preventDefault();
+          runAllChecks();
+        }
+      });
     })();
   </script>
 </body>
